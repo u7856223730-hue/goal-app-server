@@ -32,13 +32,14 @@ app.post('/api/generate-goal', async (req, res) => {
     }
 
     console.log('Sending request to OpenRouter...');
-    'https://openrouter.ai/api/v1/chat/completions',
-    {
-      model: model || 'google/gemini-2.5-flash',
-      messages: [
-        {
-          role: 'system',
-          content: `You are an expert in productivity + behavioral psychology. Transform a raw goal into:
+    const response = await axios.post(
+      'https://openrouter.ai/api/v1/chat/completions',
+      {
+        model: model || 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert in productivity + behavioral psychology. Transform a raw goal into:
 STEP 1 Audit: weaknesses (vague, luck-based, no process, etc.)
 STEP 2 Transform:
 - OKR: 1 Objective + 2–3 Key Results
@@ -69,32 +70,32 @@ JSON SCHEMA:
     }
   ]
 }`
-        },
-        {
-          role: 'user',
-          content: message
+          },
+          {
+            role: 'user',
+            content: message
+          }
+        ]
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://neon-hubble.app',
+          'X-Title': 'Neon Hubble Mobile'
         }
-      ]
-    },
-    {
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://neon-hubble.app',
-        'X-Title': 'Neon Hubble Mobile'
       }
-    }
     );
 
-res.json(response.data);
+    res.json(response.data);
 
   } catch (error) {
-  console.error('Error calling OpenRouter:', error.response?.data || error.message);
-  res.status(500).json({
-    error: 'Failed to generate goal',
-    details: error.response?.data || error.message
-  });
-}
+    console.error('Error calling OpenRouter:', error.response?.data || error.message);
+    res.status(500).json({
+      error: 'Failed to generate goal',
+      details: error.response?.data || error.message
+    });
+  }
 });
 
 app.listen(PORT, () => {
